@@ -19,6 +19,22 @@ JOBS=$(nproc)
 MARKER_DIR="$LFS/sources/.markers"
 mkdir -p "$MARKER_DIR"
 
+# LFS Chapter 4.2, "Creating a Limited Directory Layout". This has to
+# exist before ANY Chapter 5 package runs (Glibc in particular needs
+# $LFS/lib64 and $LFS/usr/include to already be real directories, not
+# something cp/ln creates implicitly on the fly). Run unconditionally,
+# every script invocation, it's cheap and fully idempotent, so no
+# script in this folder can ever again run before this layout exists.
+mkdir -pv "$LFS"/{etc,var} "$LFS"/usr/{bin,lib,sbin,include}
+for i in bin lib sbin; do
+  if [ ! -e "$LFS/$i" ]; then
+    ln -sv "usr/$i" "$LFS/$i"
+  fi
+done
+case $(uname -m) in
+  x86_64) mkdir -pv "$LFS/lib64" ;;
+esac
+
 # Call this at the very end of a package script, once install succeeds.
 mark_done() {
   touch "$MARKER_DIR/$1.done"

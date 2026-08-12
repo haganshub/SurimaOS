@@ -16,7 +16,8 @@ cd linux-6.18.10
 make mrproper
 make headers
 find usr/include -type f ! -name '*.h' -delete
-cp -rv usr/include $LFS/usr
+mkdir -pv $LFS/usr/include
+cp -rv usr/include/. $LFS/usr/include/
 
 mark_done "03-linux-headers"
 echo "=== Linux API Headers complete ==="
