@@ -1,0 +1,26 @@
+# Source tarballs and downloaded packages, these are large and reproducible from /config version lists
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tgz
+
+# Build output and chroot working directories
+/build/
+/lfs-build/
+*.iso
+*.img
+
+# Compiled objects and logs from build sessions
+*.o
+*.log
+*.tmp
+
+# Editor/OS cruft
+.DS_Store
+*.swp
+*~
+
+# Kernel build artifacts (keep the .config itself, tracked separately in /config)
+/kernel-src/
+vmlinuz*
+System.map*

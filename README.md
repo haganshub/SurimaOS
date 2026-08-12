@@ -24,10 +24,8 @@ SurimaOS is a Linux distribution built from source, following the Linux From Scr
 Releases (ISO images) are published under the [Releases](../../releases) tab of this repo. To grab the latest one from the terminal:
 
 ```bash
-wget https://github.com/<your-username>/SurimaOS/releases/latest/download/surimaos.iso
+wget https://github.com/haganshub/SurimaOS/releases/latest/download/surimaos.iso
 ```
-
-(Exact filename will be updated here once the first release is published.)
 
 ## Repo layout
 
