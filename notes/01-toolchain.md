@@ -1,4 +1,4 @@
-# 01 — Toolchain (LFS Chapter 5)
+# 01 - Toolchain (LFS Chapter 5)
 
 The cross-toolchain build (binutils pass 1, GCC pass 1, Linux API headers,
 glibc, libstdc++, and the rest of Chapter 5/6) followed the book closely with

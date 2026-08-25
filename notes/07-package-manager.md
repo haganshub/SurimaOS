@@ -1,4 +1,4 @@
-# 07 — Package Manager: Why Not DNF
+# 07 - Package Manager: Why Not DNF
 
 ## The original plan
 
@@ -51,11 +51,11 @@ Three genuinely BLFS-documented dependencies, no drama:
 
 Then two genuinely unguided builds, no BLFS page for either:
 
-- **`pacman` v7.0.0** — built from Arch's own official source via `meson`,
+- **`pacman` v7.0.0** - built from Arch's own official source via `meson`,
   with `crypto=openssl`, `curl=enabled`, and `gpgme`/`doc`/`file-seccomp`
   all disabled to keep scope minimal for a first build. Compiled cleanly
   first try (291/291 targets).
-- **`fakeroot` 2.1.4** — required by `makepkg` (pacman's package-building
+- **`fakeroot` 2.1.4** - required by `makepkg` (pacman's package-building
   helper) to let an unprivileged user build packages containing root-owned
   files. Also `meson`-based, no autotools bootstrap needed. Version
   discovered by checking Debian's actual current package pool listing

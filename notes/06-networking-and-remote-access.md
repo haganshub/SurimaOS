@@ -1,4 +1,4 @@
-# 06 — Networking, SSH, sudo, and Remote Access
+# 06 - Networking, SSH, sudo, and Remote Access
 
 ## The bootstrap problem: no network tools at all
 

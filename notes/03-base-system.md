@@ -1,4 +1,4 @@
-# 03 — Base System Build (LFS Chapter 8)
+# 03 - Base System Build (LFS Chapter 8)
 
 This is the largest chapter in the LFS book by a wide margin, 81 packages,
 more than double the combined size of Chapters 5-7. Most packages built

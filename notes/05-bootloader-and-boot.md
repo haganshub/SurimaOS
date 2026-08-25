@@ -1,4 +1,4 @@
-# 05 — Bootloader, UEFI, and the Real Deployment
+# 05 - Bootloader, UEFI, and the Real Deployment
 
 This is the phase where the split between build host (ThinkCentre) and
 target hardware (Latitude 7280) created the most friction. Most of LFS's

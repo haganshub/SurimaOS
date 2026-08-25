@@ -1,4 +1,4 @@
-# 02 — Temporary System & Chroot (LFS Chapters 6-7)
+# 02 - Temporary System & Chroot (LFS Chapters 6-7)
 
 ## Workflow
 

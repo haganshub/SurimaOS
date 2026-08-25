@@ -1,4 +1,4 @@
-# 04 — Kernel Configuration
+# 04 - Kernel Configuration
 
 ## Baseline approach
 

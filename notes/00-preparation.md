@@ -1,4 +1,4 @@
-# 00 — Preparation
+# 00 - Preparation
 
 ## Build environment
 
