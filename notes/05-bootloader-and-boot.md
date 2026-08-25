@@ -1,57 +1,50 @@
-# 05 - Bootloader, UEFI, and the Real Deployment
+# 05 - Bootloader, UEFI, and Deploying to the 7280
 
-This is the phase where the split between build host (ThinkCentre) and
-target hardware (Latitude 7280) created the most friction. Most of LFS's
-own GRUB chapter assumes you're building directly on the machine you'll
-boot from. This project wasn't structured that way, which meant several
-steps had to be deliberately deferred and done for real later.
+Building on one machine and deploying to another (see `00-preparation.md`)
+caused the most friction of the whole project right here. Most of LFS's
+GRUB chapter assumes you're building directly on the machine you'll boot
+from. I wasn't, so several steps had to wait until the real deployment.
 
-## LFS's own GRUB chapter doesn't apply to a UEFI target
+## LFS's GRUB chapter doesn't apply on UEFI
 
-The book is explicit: if the target system is UEFI (confirmed for the
-7280 via its BIOS setup screen), skip the LFS book's own GRUB installation
-instructions and use BLFS's separate UEFI-specific page instead. The LFS
-page's syntax/`grub.cfg` explanation is still useful background, just not
-the actual commands to run.
+The book says: if the target is UEFI (confirmed for the 7280 in its BIOS
+setup screen), skip the LFS book's own GRUB install instructions and use
+BLFS's UEFI-specific page instead. The LFS page's grub.cfg syntax
+explanation is still useful, just not the actual commands.
 
-## GRUB was built in chroot, but *not installed*, on purpose
+## Built GRUB in chroot, didn't install it
 
-Building the UEFI-capable GRUB binaries (`--with-platform=efi`, since the
-GRUB built earlier in the base LFS chapter is BIOS-only) is safe to do
-inside chroot on the build host. Actually running `grub-install` with real
-EFI variable registration is not: `efivarfs` is a direct kernel interface
-to the *physical machine's* firmware NVRAM, chroot cannot isolate or
-virtualize it. Running the real install steps on the ThinkCentre would
-have written persistent boot-entry data into the ThinkCentre's own UEFI
-firmware, for a filesystem that isn't even the ThinkCentre's own disk.
+Building the UEFI-capable GRUB binaries (--with-platform=efi, since the
+GRUB from the base LFS chapter is BIOS-only) is fine to do in chroot on
+the build host. Running grub-install with real EFI variable registration
+isn't: efivarfs is a direct interface to the physical machine's firmware
+NVRAM, chroot can't isolate it. Doing that on the ThinkCentre would have
+written boot-entry data into the ThinkCentre's own firmware, for a
+filesystem that isn't even its disk.
 
-The binaries were built and left ready; the actual `grub-install` and
-`grub.cfg` creation were deferred to the real deployment onto the 7280.
+Built the binaries, left the actual install for the real hardware.
 
-## Real deployment: partitioning
+## Partitioning the 7280
 
-The 7280 was partitioned for real by booting a Ventoy USB (already
-carrying a live Linux environment) so the internal disk wasn't in use
-during the wipe. Final scheme on the 256GB NVMe drive:
+Booted a Ventoy USB with a live environment so the internal disk wasn't in
+use during the wipe. Final layout on the 256GB NVMe:
 
 | Partition | Size | Type | Mount |
 |---|---|---|---|
-| `nvme0n1p1` | 1GB | FAT32 (ESP) | `/boot/efi` |
-| `nvme0n1p2` | 8GB | swap | swap |
-| `nvme0n1p3` | ~229GB | ext4 | `/` |
+| nvme0n1p1 | 1GB | FAT32 (ESP) | /boot/efi |
+| nvme0n1p2 | 8GB | swap | swap |
+| nvme0n1p3 | ~229GB | ext4 | / |
 
-## Transferring the built system: the `/proc/kcore` trap
+## The /proc/kcore trap
 
-The built system was transferred from the ThinkCentre to the new root
-partition via `rsync` over the network (Tailscale-reachable at this
-point). The first attempt reported a transfer size of ~140 **terabytes**,
-because the source path (`/mnt/lfs/proc`) was a *live, mounted* kernel
-interface rather than a real directory of files. `/proc/kcore` in
-particular is a virtual pseudo-file that reports its size as the entire
-addressable memory space (~128-140TB on x86_64), it contains no real data,
-but any tool that asks "how big is this" gets told that number.
+Transferred the built system over rsync (Tailscale-reachable at this
+point). First attempt reported a transfer size of ~140 terabytes, because
+the source path (/mnt/lfs/proc) was a live mounted kernel interface, not a
+real directory. /proc/kcore reports its size as the entire addressable
+memory space, no real data behind it, but any tool asking "how big is
+this" gets told that number.
 
-Fix: explicitly exclude the live virtual filesystems from the transfer:
+Fixed by excluding the live filesystems:
 
 ```bash
 rsync -aHAXv --numeric-ids \
@@ -60,49 +53,40 @@ rsync -aHAXv --numeric-ids \
   connor@<source>:/mnt/lfs/ /mnt/target/
 ```
 
-(`/sources` was also excluded deliberately: it's pure build scratch space,
-every downloaded tarball and build directory, genuinely useless on the
-deployed system.)
+(/sources excluded too, pure build scratch space, no reason to bring it
+along.)
 
-A second, subtler issue after fixing the above: the transfer under-reported
-files because `rsync` was connecting as a non-root user, which correctly
-couldn't read root-only source files (`/etc/shadow`, `/root`, etc.). Fixed
-with `--rsync-path="sudo rsync"` so the *remote* process runs elevated,
-combined with a scoped, temporary, single-command `NOPASSWD` sudo rule
-(removed immediately after use) rather than a blanket one.
+Second issue after that: transfer under-reported files because rsync
+connected as a non-root user, which correctly couldn't read root-only
+files (/etc/shadow, /root). Fixed with --rsync-path="sudo rsync" so the
+remote side runs elevated, plus a scoped, temporary NOPASSWD sudo rule
+removed right after.
 
-## GRUB install: no `efibootmgr`, used the fallback path instead
+## GRUB install without efibootmgr
 
-The book's real UEFI install flow normally registers a named boot entry
-via `efibootmgr`. That package wasn't built (it has its own dependency
-chain: `efivar`, `popt`), and building a 3-package chain just to register
-a boot entry a specific way wasn't worth it for a single-machine build.
-The book itself documents a fallback for exactly this situation, installing
-GRUB to the hardcoded path nearly all UEFI firmware checks automatically:
+The book's normal UEFI flow registers a named boot entry via efibootmgr.
+Didn't build it, its own dependency chain (efivar, popt) wasn't worth it
+for one machine. The book documents a fallback for exactly this, installs
+GRUB to the hardcoded path almost all UEFI firmware checks automatically:
 
 ```bash
 grub-install --target=x86_64-efi --removable
 ```
 
-This worked without any further configuration.
+Worked with no further config.
 
-## First boot: root had no password
+## First boot: no root password
 
-The very first successful boot reached a real login prompt, but the
-`passwd root` step from the base system build had been flagged as a manual
-step during the build and never actually confirmed complete. Recovery, done
-entirely from the booted system itself, no rescue USB needed:
+First successful boot reached a real login prompt, but `passwd root` from
+the base system build had been a manual step that never actually got
+confirmed. Fixed from the booted system itself, no rescue USB:
 
-1. At the GRUB menu, press `e` on the boot entry, append `init=/bin/bash`
-   to the kernel command line, boot.
-2. `mount -o remount,rw /`
-3. Interactive `passwd root` failed silently in this minimal environment
-   (no full terminal/job control available). `echo "root:newpassword" |
-   chpasswd` worked where the interactive prompt didn't.
-4. `reboot -f` refused at first ("Running in chroot, ignoring request"),
-   because `/proc` was never mounted in this bare `init=/bin/bash`
-   environment and `reboot` assumed it must therefore be running inside a
-   chroot. Fixed by mounting `/proc` and `/sys` first, then retrying.
+1. At GRUB, press e, append init=/bin/bash to the kernel line, boot.
+2. mount -o remount,rw /
+3. Interactive passwd root failed silently in this bare environment (no
+   terminal/job control). `echo "root:newpassword" | chpasswd` worked.
+4. reboot -f refused at first ("Running in chroot, ignoring request"),
+   because /proc was never mounted here and reboot assumed a chroot.
+   Mounted /proc and /sys first, then it worked.
 
-After that, a normal reboot into the real boot chain (not the rescue
-kernel parameter) confirmed root login worked correctly and persistently.
+Normal reboot after that confirmed root login worked and stuck.
