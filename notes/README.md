@@ -16,3 +16,4 @@ hopefully one of these saves you a debugging session.
 - [05-bootloader-and-boot.md](05-bootloader-and-boot.md) - GRUB, UEFI, deploying to the 7280
 - [06-networking-and-remote-access.md](06-networking-and-remote-access.md) - SSH, sudo, wifi, Tailscale
 - [07-package-manager.md](07-package-manager.md) - Why pacman, not dnf
+- [08-xorg-and-mesa.md](08-xorg-and-mesa.md) - Xorg build environment, and the Mesa/libclc/LLVM saga
