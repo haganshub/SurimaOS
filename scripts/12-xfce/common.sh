@@ -5,6 +5,15 @@
 #
 # Same pattern as scripts/11-xorg/common.sh. Runs directly on the
 # deployed SurimaOS system, no chroot, no $LFS.
+#
+# STANDING RULE for this whole chapter: GTK3 was built with
+# introspection=false (a real dead end, HarfBuzz has no .gir
+# generation capability at all, so anything upstream needing a real
+# introspection chain hits a wall). Every XFCE component that offers
+# an introspection toggle (autotools: --enable-introspection=no,
+# meson: -D introspection=false) should have it explicitly disabled,
+# rather than waiting for each one to fail individually the way
+# libxfce4ui did.
 
 set -e
 
