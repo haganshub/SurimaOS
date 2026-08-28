@@ -11,9 +11,11 @@
 # generation capability at all, so anything upstream needing a real
 # introspection chain hits a wall). Every XFCE component that offers
 # an introspection toggle (autotools: --enable-introspection=no,
-# meson: -D introspection=false) should have it explicitly disabled,
-# rather than waiting for each one to fail individually the way
-# libxfce4ui did.
+# meson: -D introspection=disabled or =false depending on whether the
+# package uses meson's boolean or feature option type, check the
+# error message or meson_options.txt/meson.options if unsure) should
+# have it explicitly disabled, rather than waiting for each one to
+# fail individually the way libxfce4ui and libwnck both did.
 
 set -e
 
